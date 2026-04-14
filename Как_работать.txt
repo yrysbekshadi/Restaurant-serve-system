@@ -1,0 +1,39 @@
+***
+Полный правильный цикл работы
+1. Переключился на свою ветку
+git checkout edige-work
+2. Перед работой подтянул свежий main
+git checkout main
+git pull origin main
+3. Обновил свою ветку от main
+git checkout edige-work
+git merge main
+4. Работаешь, потом:
+git add .
+git commit -m "my changes"
+git push
+5. На GitHub делаешь Pull Request в main
+***
+***
+После того как твой PR уже merged
+Чтобы у тебя локально main тоже стал свежим:
+git checkout main
+git pull origin main
+***
+***
+Если хочешь дальше продолжать ту же ветку, обнови и её:
+git checkout edige-work
+git merge main
+***
+***
+После работы на своей ветке на GitHub:
+заходишь в репозиторий;
+обычно сверху появится кнопка Compare & pull request;
+нажимаешь её;
+проверяешь, что:
+base = main
+compare = edige-work
+создаёшь Pull Request;
+потом нажимаешь Merge pull request.
+***
+После merge твои изменения попадут в main.
