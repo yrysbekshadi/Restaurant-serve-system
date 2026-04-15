@@ -1,0 +1,25 @@
+<nav class="nav">
+  <div class="container nav-inner">
+    <a routerLink="/" class="brand">Restaurant Booking</a>
+
+    <div class="nav-links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a routerLink="/restaurants" routerLinkActive="active">Restaurants</a>
+
+      <ng-container *ngIf="auth.currentUser$ | async as user; else guestLinks">
+        <a *ngIf="user.role === 'client'" routerLink="/my-reservations" routerLinkActive="active">My reservations</a>
+        <a *ngIf="user.role === 'restaurant'" routerLink="/restaurant-dashboard" routerLinkActive="active">Dashboard</a>
+        <button class="btn btn-outline" (click)="logout()">Logout</button>
+      </ng-container>
+
+      <ng-template #guestLinks>
+        <a routerLink="/login" routerLinkActive="active">Login</a>
+        <a routerLink="/register" routerLinkActive="active">Register</a>
+      </ng-template>
+    </div>
+  </div>
+</nav>
+
+<main class="container page">
+  <router-outlet></router-outlet>
+</main>

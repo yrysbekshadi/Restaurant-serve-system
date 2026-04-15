@@ -1,0 +1,100 @@
+<div *ngIf="loading" class="muted">Loading...</div>
+<p class="error" *ngIf="error">{{ error }}</p>
+<p class="success" *ngIf="success">{{ success }}</p>
+
+<section *ngIf="restaurant" class="grid">
+  <div class="card">
+    <h1>{{ restaurant.name }}</h1>
+    <p class="muted">{{ restaurant.address }}</p>
+    <p>District: {{ restaurant.district }}</p>
+    <p>Cuisine: {{ restaurant.cuisine_type }}</p>
+    <p>Working hours: {{ restaurant.opening_time }} - {{ restaurant.closing_time }}</p>
+    <p>{{ restaurant.description }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Check available tables</h2>
+
+    <form [formGroup]="bookingForm" class="form-grid">
+      <div>
+        <label>Date</label>
+        <input type="date" formControlName="reservation_date" />
+      </div>
+
+      <div>
+        <label>Time</label>
+        <input type="time" formControlName="reservation_time" />
+      </div>
+
+      <div class="full">
+        <label>Guests count</label>
+        <input type="number" min="1" formControlName="guests_count" />
+      </div>
+    </form>
+
+    <div class="row" style="margin-top: 12px;">
+      <button class="btn btn-primary" type="button" (click)="checkTables()" [disabled]="checkingTables">
+        {{ checkingTables ? 'Checking...' : 'Check tables' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="availableTables.length > 0">
+    <h2>Available tables</h2>
+
+    <div class="grid grid-3">
+      <div
+        class="card"
+        *ngFor="let table of availableTables"
+        [class.selected]="selectedTableId === table.id"
+      >
+        <h3>Table {{ table.table_number }}</h3>
+        <p>Capacity: {{ table.capacity }}</p>
+        <button class="btn btn-outline" type="button" (click)="selectTable(table.id)">
+          {{ selectedTableId === table.id ? 'Selected' : 'Select' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Menu / preorder</h2>
+
+    <div class="list">
+      <article class="card" *ngFor="let dish of restaurant.dishes">
+        <h3>{{ dish.name }}</h3>
+        <p *ngIf="dish.description">{{ dish.description }}</p>
+        <p class="muted" *ngIf="dish.ingredients">Ingredients: {{ dish.ingredients }}</p>
+        <p><strong>{{ dish.price }}</strong></p>
+
+        <div class="form-grid">
+          <div>
+            <label>Quantity</label>
+            <input
+              type="number"
+              min="0"
+              [value]="orderDraft[dish.id]?.quantity ?? 0"
+              (input)="setQuantity(dish.id, $any($event.target).value)"
+            />
+          </div>
+
+          <div class="full">
+            <label>Comment</label>
+            <textarea
+              [value]="orderDraft[dish.id]?.comment ?? ''"
+              (input)="setComment(dish.id, $any($event.target).value)"
+              placeholder="без лука, меньше соли, без соуса..."
+            ></textarea>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="row" style="justify-content: space-between; margin-top: 16px;">
+      <strong>Total preorder: {{ totalAmount }}</strong>
+      <button class="btn btn-primary" type="button" (click)="submitReservation()" [disabled]="booking">
+        {{ booking ? 'Saving...' : 'Create reservation' }}
+      </button>
+    </div>
+  </div>
+</section>

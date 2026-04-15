@@ -1,0 +1,42 @@
+<section class="card" style="max-width: 640px; margin: 0 auto;">
+  <h2>Register</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+    <div>
+      <label>Username</label>
+      <input type="text" formControlName="username" />
+    </div>
+
+    <div>
+      <label>Email</label>
+      <input type="email" formControlName="email" />
+    </div>
+
+    <div>
+      <label>Phone</label>
+      <input type="text" formControlName="phone" />
+    </div>
+
+    <div>
+      <label>Password</label>
+      <input type="password" f` ormControlName="password" />
+    </div>
+
+    <div class="full">
+      <label>Role</label>
+      <select formControlName="role">
+        <option value="client">Client</option>
+        <option value="restaurant">Restaurant</option>
+      </select>
+    </div>
+
+    <p class="error full" *ngIf="error">{{ error }}</p>
+    <p class="success full" *ngIf="success">{{ success }}</p>
+
+    <div class="full">
+      <button class="btn btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Loading...' : 'Create account' }}
+      </button>
+    </div>
+  </form>
+</section>
