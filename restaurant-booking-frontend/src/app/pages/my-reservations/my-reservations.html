@@ -1,0 +1,52 @@
+<section class="grid">
+  <div class="card">
+    <h1>My reservations</h1>
+    <p class="muted">Здесь отображаются все брони текущего клиента.</p>
+  </div>
+
+  <p class="muted" *ngIf="loading">Loading...</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <article class="card" *ngFor="let reservation of reservations">
+    <div class="row" style="justify-content: space-between;">
+      <div>
+        <h3>Reservation #{{ reservation.id }}</h3>
+        <p>Date: {{ reservation.reservation_date }}</p>
+        <p>Time: {{ reservation.reservation_time }}</p>
+        <p>Guests: {{ reservation.guests_count }}</p>
+        <p>Table ID: {{ reservation.table }}</p>
+      </div>
+
+      <div>
+        <span class="status" [ngClass]="reservation.status">{{ reservation.status }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="reservation.payment" style="margin-top: 10px;">
+      <p>Payment status: <strong>{{ reservation.payment.status }}</strong></p>
+      <p>Amount: <strong>{{ reservation.payment.amount }}</strong></p>
+    </div>
+
+    <div *ngIf="reservation.reservation_dishes.length > 0" style="margin-top: 10px;">
+      <h4>Preorder</h4>
+      <ul>
+        <li *ngFor="let item of reservation.reservation_dishes">
+          Dish ID {{ item.dish }} · qty {{ item.quantity }}
+          <span *ngIf="item.comment"> · comment: {{ item.comment }}</span>
+          <span *ngIf="item.is_modified"> · modified</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="row" style="margin-top: 12px;">
+      <button
+        *ngIf="reservation.status !== 'cancelled'"
+        class="btn btn-danger"
+        type="button"
+        (click)="cancelReservation(reservation.id)"
+      >
+        Cancel reservation
+      </button>
+    </div>
+  </article>
+</section>

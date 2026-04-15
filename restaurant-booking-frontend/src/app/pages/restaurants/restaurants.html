@@ -1,0 +1,27 @@
+<section class="grid">
+  <div class="card">
+    <h2>Restaurants</h2>
+
+    <form [formGroup]="form" (ngSubmit)="loadRestaurants()" class="row">
+      <input type="text" formControlName="search" placeholder="Search by restaurant name..." />
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+  </div>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <p class="muted" *ngIf="loading">Loading...</p>
+
+  <div class="grid grid-3">
+    <article class="card" *ngFor="let restaurant of restaurants">
+      <h3>{{ restaurant.name }}</h3>
+      <p class="muted">{{ restaurant.address }}</p>
+      <p>District: {{ restaurant.district }}</p>
+      <p>Cuisine: {{ restaurant.cuisine_type }}</p>
+      <p>Working hours: {{ restaurant.opening_time }} - {{ restaurant.closing_time }}</p>
+
+      <a class="btn btn-outline" [routerLink]="['/restaurants', restaurant.id]">
+        Open restaurant
+      </a>
+    </article>
+  </div>
+</section>
