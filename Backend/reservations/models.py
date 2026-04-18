@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from restaurants.models import Restaurant, Table, Dish
+from restaurants.models import Restaurant, Table
 
 
 class Reservation(models.Model):
@@ -33,34 +33,3 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"Reservation #{self.id} - {self.client.username}"
-
-
-class ReservationDish(models.Model):
-    reservation = models.ForeignKey(
-        Reservation,
-        on_delete=models.CASCADE,
-        related_name='reservation_dishes'
-    )
-    dish = models.ForeignKey(
-        Dish,
-        on_delete=models.CASCADE,
-        related_name='reservation_dishes'
-    )
-    quantity = models.PositiveIntegerField(default=1)
-    comment = models.TextField(blank=True, null=True)
-    is_modified = models.BooleanField(default=False)
-    price_at_booking = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def save(self, *args, **kwargs):
-        if self.comment and self.comment.strip():
-            self.is_modified = True
-        else:
-            self.is_modified = False
-
-        if not self.price_at_booking:
-            self.price_at_booking = self.dish.price
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.dish.name} x {self.quantity}"
