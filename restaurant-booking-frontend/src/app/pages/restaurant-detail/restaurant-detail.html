@@ -55,10 +55,16 @@
         </button>
       </div>
     </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button class="btn btn-primary" type="button" (click)="submitReservation()" [disabled]="booking">
+        {{ booking ? 'Saving...' : 'Create reservation' }}
+      </button>
+    </div>
   </div>
 
   <div class="card">
-    <h2>Menu / preorder</h2>
+    <h2>Menu</h2>
 
     <div class="list">
       <article class="card" *ngFor="let dish of restaurant.dishes">
@@ -66,35 +72,7 @@
         <p *ngIf="dish.description">{{ dish.description }}</p>
         <p class="muted" *ngIf="dish.ingredients">Ingredients: {{ dish.ingredients }}</p>
         <p><strong>{{ dish.price }}</strong></p>
-
-        <div class="form-grid">
-          <div>
-            <label>Quantity</label>
-            <input
-              type="number"
-              min="0"
-              [value]="orderDraft[dish.id]?.quantity ?? 0"
-              (input)="setQuantity(dish.id, $any($event.target).value)"
-            />
-          </div>
-
-          <div class="full">
-            <label>Comment</label>
-            <textarea
-              [value]="orderDraft[dish.id]?.comment ?? ''"
-              (input)="setComment(dish.id, $any($event.target).value)"
-              placeholder="без лука, меньше соли, без соуса..."
-            ></textarea>
-          </div>
-        </div>
       </article>
-    </div>
-
-    <div class="row" style="justify-content: space-between; margin-top: 16px;">
-      <strong>Total preorder: {{ totalAmount }}</strong>
-      <button class="btn btn-primary" type="button" (click)="submitReservation()" [disabled]="booking">
-        {{ booking ? 'Saving...' : 'Create reservation' }}
-      </button>
     </div>
   </div>
 </section>

@@ -194,20 +194,6 @@
             <span class="status" [ngClass]="reservation.status">{{ reservation.status }}</span>
           </div>
 
-          <div *ngIf="reservation.payment">
-            <p>Payment: {{ reservation.payment.status }} / {{ reservation.payment.amount }}</p>
-          </div>
-
-          <div *ngIf="reservation.reservation_dishes.length > 0">
-            <h4>Preorder</h4>
-            <ul>
-              <li *ngFor="let item of reservation.reservation_dishes">
-                Dish ID {{ item.dish }} · qty {{ item.quantity }}
-                <span *ngIf="item.comment"> · {{ item.comment }}</span>
-              </li>
-            </ul>
-          </div>
-
           <div class="row" style="margin-top: 12px;">
             <button class="btn btn-success" type="button" (click)="confirmReservation(reservation.id)">
               Confirm
