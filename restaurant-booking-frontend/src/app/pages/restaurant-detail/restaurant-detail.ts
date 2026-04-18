@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -42,8 +42,6 @@ export class RestaurantDetail implements OnInit {
     guests_count: [2, [Validators.required, Validators.min(1)]],
   });
 
-  orderDraft: Record<number, { quantity: number; comment: string }> = {};
-
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loadRestaurant(id);
@@ -59,12 +57,6 @@ export class RestaurantDetail implements OnInit {
       next: (data) => {
         this.restaurant = data;
         this.loading = false;
-
-        for (const dish of data.dishes) {
-          if (!this.orderDraft[dish.id]) {
-            this.orderDraft[dish.id] = { quantity: 0, comment: '' };
-          }
-        }
       },
       error: () => {
         this.loading = false;
@@ -102,28 +94,8 @@ export class RestaurantDetail implements OnInit {
     });
   }
 
-  setQuantity(dishId: number, value: string) {
-    const quantity = Math.max(0, Number(value) || 0);
-    this.orderDraft[dishId].quantity = quantity;
-  }
-
-  setComment(dishId: number, value: string) {
-    this.orderDraft[dishId].comment = value;
-  }
-
   selectTable(tableId: number) {
     this.selectedTableId = tableId;
-  }
-
-  get totalAmount(): number {
-    if (!this.restaurant) {
-      return 0;
-    }
-
-    return this.restaurant.dishes.reduce((sum, dish) => {
-      const quantity = this.orderDraft[dish.id]?.quantity ?? 0;
-      return sum + Number(dish.price) * quantity;
-    }, 0);
   }
 
   submitReservation() {
@@ -155,21 +127,12 @@ export class RestaurantDetail implements OnInit {
 
     const formValue = this.bookingForm.getRawValue();
 
-    const dishes = Object.entries(this.orderDraft)
-      .map(([dishId, draft]) => ({
-        dish: Number(dishId),
-        quantity: draft.quantity,
-        comment: draft.comment.trim(),
-      }))
-      .filter((item) => item.quantity > 0);
-
     const payload: CreateReservationPayload = {
       restaurant: this.restaurantId,
       table: this.selectedTableId,
       reservation_date: formValue.reservation_date,
       reservation_time: formValue.reservation_time,
       guests_count: Number(formValue.guests_count),
-      dishes,
     };
 
     this.booking = true;
