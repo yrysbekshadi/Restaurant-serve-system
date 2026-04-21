@@ -10,6 +10,7 @@ from .views import (
     MyDishesView,
     MyDishDetailView,
     AvailableTablesView,
+    cuisine_types,
 )
 
 urlpatterns = [
@@ -27,4 +28,6 @@ urlpatterns = [
 
     path('restaurant/dishes/', MyDishesView.as_view()),
     path('restaurant/dishes/<int:pk>/', MyDishDetailView.as_view()),
+
+    path('restaurants/cuisine-types/', cuisine_types),
 ]

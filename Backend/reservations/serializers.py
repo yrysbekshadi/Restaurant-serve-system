@@ -2,6 +2,10 @@ from django.utils import timezone
 from rest_framework import serializers
 from .models import Reservation
 
+class AvailableTablesQuerySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    time = serializers.TimeField()
+    guests = serializers.IntegerField(min_value=1)
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
