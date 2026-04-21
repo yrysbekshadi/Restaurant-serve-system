@@ -7,10 +7,10 @@
   <p class="muted" *ngIf="loading">Loading...</p>
   <p class="error" *ngIf="error">{{ error }}</p>
 
-  <article class="card" *ngFor="let reservation of reservations">
+  <article class="card" *ngFor="let reservation of reservations; let i = index">
     <div class="row" style="justify-content: space-between;">
       <div>
-        <h3>Reservation #{{ reservation.id }}</h3>
+        <h3>Reservation {{ reservations.length - i }}</h3>
         <p>Date: {{ reservation.reservation_date }}</p>
         <p>Time: {{ reservation.reservation_time }}</p>
         <p>Guests: {{ reservation.guests_count }}</p>
