@@ -9,17 +9,47 @@
 
     <div>
       <label>Email</label>
-      <input type="email" formControlName="email" />
+        <input type="email" formControlName="email" />
+
+      <div *ngIf="form.controls.email.touched && form.controls.email.invalid" class="error">
+        <small *ngIf="form.controls.email.errors?.['required']">
+          Email is required.
+        </small>
+        <small *ngIf="form.controls.email.errors?.['email']">
+          Enter a valid email.
+        </small>
+        <small *ngIf="form.controls.email.errors?.['emailDomain']">
+          Allowed domains: gmail.com, mail.ru, yandex.ru, outlook.com, icloud.com
+        </small>
+      </div>
     </div>
 
     <div>
       <label>Phone</label>
-      <input type="text" formControlName="phone" />
+      <input type="text" formControlName="phone"(focus)="ensurePhonePrefix()" (input)="normalizePhone()"/>
+      <div *ngIf="form.controls.phone.touched && form.controls.phone.invalid" class="error">
+        <small *ngIf="form.controls.phone.errors?.['required']">
+          Phone is required.
+        </small>
+        <small *ngIf="form.controls.phone.errors?.['pattern']">
+          Phone must be in format +7XXXXXXXXXX
+        </small>
+      </div>
     </div>
+
 
     <div>
       <label>Password</label>
-      <input type="password" formControlName="password" />
+      <input type="password" formControlName="password" placeholder="min 8 characters"/>
+
+      <div *ngIf="form.controls.password.touched && form.controls.password.invalid" class="error">
+        <small *ngIf="form.controls.password.errors?.['required']">
+          Password is required.
+        </small>
+        <small *ngIf="form.controls.password.errors?.['minlength']">
+          Password must be at least 8 characters.
+        </small>
+      </div>
     </div>
 
     <div class="full">
@@ -34,7 +64,7 @@
     <p class="success full" *ngIf="success">{{ success }}</p>
 
     <div class="full">
-      <button class="btn btn-primary" type="submit" [disabled]="loading">
+      <button class="btn btn-primary" type="submit" [disabled]="loading || form.invalid">
         {{ loading ? 'Loading...' : 'Create account' }}
       </button>
     </div>

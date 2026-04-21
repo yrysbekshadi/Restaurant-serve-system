@@ -1,8 +1,35 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+
+function allowedEmailDomainsValidator(domains: string[]): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '').trim().toLowerCase();
+
+    if (!value) {
+      return null;
+    }
+
+    const parts = value.split('@');
+
+    if (parts.length !== 2) {
+      return null;
+    }
+
+    const domain = parts[1];
+
+    return domains.includes(domain) ? null : { emailDomain: true };
+  };
+}
 
 @Component({
   selector: 'app-register',
@@ -22,11 +49,46 @@ export class Register {
 
   form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    phone: [''],
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        allowedEmailDomainsValidator([
+          'gmail.com',
+          'mail.ru',
+          'yandex.ru',
+          'outlook.com',
+          'icloud.com',
+        ]),
+      ],
+    ],
+    phone: ['+7', [Validators.required, Validators.pattern(/^\+7\d{10}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     role: ['client' as 'client' | 'restaurant', [Validators.required]],
   });
+
+  ensurePhonePrefix() {
+    const current = this.form.controls.phone.value || '';
+    if (!current.startsWith('+7')) {
+      this.form.controls.phone.setValue('+7');
+    }
+  }
+
+  normalizePhone() {
+    const current = this.form.controls.phone.value || '';
+    const digitsOnly = current.replace(/\D/g, '');
+
+    let localDigits = digitsOnly;
+
+    if (localDigits.startsWith('7')) {
+      localDigits = localDigits.slice(1);
+    }
+
+    localDigits = localDigits.slice(0, 10);
+
+    this.form.controls.phone.setValue(`+7${localDigits}`, { emitEvent: false });
+  }
 
   submit() {
     if (this.form.invalid) {

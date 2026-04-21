@@ -19,7 +19,7 @@
     <form [formGroup]="bookingForm" class="form-grid">
       <div>
         <label>Date</label>
-        <input type="date" formControlName="reservation_date" />
+        <input type="date" formControlName="reservation_date" [min] = "minDate"/>
       </div>
 
       <div>
