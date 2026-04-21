@@ -1,0 +1,573 @@
+{
+  "info": {
+    "_postman_id": "a3d5f9c6-7b4e-4f72-9c0c-1e8d4f1a9b21",
+    "name": "TableTap API",
+    "description": "Postman collection generated from the current Django/DRF backend routes in the uploaded Backend.zip. Uses session/cookie auth with CSRF.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "restaurant_id", "value": "1" },
+    { "key": "table_id", "value": "1" },
+    { "key": "category_id", "value": "1" },
+    { "key": "dish_id", "value": "1" },
+    { "key": "reservation_id", "value": "1" },
+    { "key": "today", "value": "2026-04-22" },
+    { "key": "time", "value": "19:00" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get CSRF Cookie",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/csrf/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "csrf", ""]
+            },
+            "description": "Fetches csrftoken cookie. Example response: { \"message\": \"CSRF cookie set\" }."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"client_demo\",\n  \"email\": \"client_demo@gmail.com\",\n  \"phone\": \"+77771234567\",\n  \"password\": \"12345678\",\n  \"role\": \"client\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register", ""]
+            },
+            "description": "Creates a client user. Example response: { id, username, email, phone, role }."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Restaurant User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"restaurant_demo\",\n  \"email\": \"restaurant_demo@gmail.com\",\n  \"phone\": \"+77770000011\",\n  \"password\": \"12345678\",\n  \"role\": \"restaurant\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register", ""]
+            },
+            "description": "Creates a restaurant-role user. Example response: { id, username, email, phone, role }."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client_demo@gmail.com\",\n  \"password\": \"12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login", ""]
+            },
+            "description": "Logs a user in. Example response: { \"message\": \"Login successful\" }."
+          },
+          "response": []
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile", ""]
+            },
+            "description": "Returns current authenticated user. Example response: { id, username, email, phone, role }."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout", ""]
+            },
+            "description": "Logs out current session. Example response: { \"message\": \"Logout successful\" }."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Restaurants (Public)",
+      "item": [
+        {
+          "name": "List Restaurants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurants/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurants", ""]
+            },
+            "description": "Returns restaurant list. Supports ?search=."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Restaurants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurants/?search=sushi",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurants", ""],
+              "query": [
+                { "key": "search", "value": "sushi" }
+              ]
+            },
+            "description": "Search restaurants by name."
+          },
+          "response": []
+        },
+        {
+          "name": "Restaurant Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurants/{{restaurant_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurants", "{{restaurant_id}}", ""]
+            },
+            "description": "Returns one restaurant with nested tables/categories/dishes."
+          },
+          "response": []
+        },
+        {
+          "name": "Available Tables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurants/{{restaurant_id}}/available-tables/?date={{today}}&time={{time}}&guests=2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurants", "{{restaurant_id}}", "available-tables", ""],
+              "query": [
+                { "key": "date", "value": "{{today}}" },
+                { "key": "time", "value": "{{time}}" },
+                { "key": "guests", "value": "2" }
+              ]
+            },
+            "description": "Checks free tables for a given date/time/guests."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Restaurant Owner",
+      "item": [
+        {
+          "name": "Create Restaurant Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sakura Sushi\",\n  \"address\": \"Almaty, Satpayev 55\",\n  \"district\": \"Almaly\",\n  \"cuisine_type\": \"Japanese\",\n  \"description\": \"Sushi and rolls\",\n  \"opening_time\": \"12:00:00\",\n  \"closing_time\": \"23:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "profile", ""]
+            },
+            "description": "Creates profile for authenticated restaurant-role user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Restaurant Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/profile/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "profile", "me", ""]
+            },
+            "description": "Returns current restaurant profile."
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Restaurant Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/profile/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "profile", "me", ""]
+            },
+            "description": "Partial update for restaurant profile."
+          },
+          "response": []
+        },
+        {
+          "name": "List My Tables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/tables/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "tables", ""]
+            },
+            "description": "Returns all tables for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Table",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_number\": 1,\n  \"capacity\": 4,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/tables/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "tables", ""]
+            },
+            "description": "Creates table for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Table",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 6\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/tables/{{table_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "tables", "{{table_id}}", ""]
+            },
+            "description": "Partial update for one table."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Table",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/tables/{{table_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "tables", "{{table_id}}", ""]
+            },
+            "description": "Deletes a table."
+          },
+          "response": []
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "categories", ""]
+            },
+            "description": "Returns categories for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rolls\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "categories", ""]
+            },
+            "description": "Creates a menu category."
+          },
+          "response": []
+        },
+        {
+          "name": "List Dishes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/dishes/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "dishes", ""]
+            },
+            "description": "Returns dishes for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Dish",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": {{category_id}},\n  \"name\": \"Philadelphia\",\n  \"price\": \"4200.00\",\n  \"description\": \"Salmon roll\",\n  \"ingredients\": \"Salmon, rice, cream cheese\",\n  \"image\": \"https://example.com/philadelphia.jpg\",\n  \"is_available\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/dishes/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "dishes", ""]
+            },
+            "description": "Creates a dish for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Dish",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"4500.00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/dishes/{{dish_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "dishes", "{{dish_id}}", ""]
+            },
+            "description": "Partial update for one dish."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Dish",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/dishes/{{dish_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "dishes", "{{dish_id}}", ""]
+            },
+            "description": "Deletes a dish."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reservations (Client)",
+      "item": [
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant\": {{restaurant_id}},\n  \"table\": {{table_id}},\n  \"reservation_date\": \"{{today}}\",\n  \"reservation_time\": \"{{time}}\",\n  \"guests_count\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reservations/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", ""]
+            },
+            "description": "Creates reservation linked to authenticated client via request.user."
+          },
+          "response": []
+        },
+        {
+          "name": "My Reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/my/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "my", ""]
+            },
+            "description": "Returns reservations for current client."
+          },
+          "response": []
+        },
+        {
+          "name": "My Reservation Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/my/{{reservation_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "my", "{{reservation_id}}", ""]
+            },
+            "description": "Returns one reservation for current client."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel My Reservation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reservations/my/{{reservation_id}}/cancel/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "my", "{{reservation_id}}", "cancel", ""]
+            },
+            "description": "Cancels current client's reservation. Example response: { \"message\": \"Reservation cancelled by client.\" }."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reservations (Restaurant)",
+      "item": [
+        {
+          "name": "Incoming Reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/reservations/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "reservations", ""]
+            },
+            "description": "Returns reservations for current restaurant profile."
+          },
+          "response": []
+        },
+        {
+          "name": "Restaurant Reservation Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/reservations/{{reservation_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "reservations", "{{reservation_id}}", ""]
+            },
+            "description": "Returns one reservation for current restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Reservation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/reservations/{{reservation_id}}/confirm/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "reservations", "{{reservation_id}}", "confirm", ""]
+            },
+            "description": "Confirms a reservation. Example response: { \"message\": \"Reservation confirmed.\" }."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Reservation (Restaurant)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-CSRFToken", "value": "{{csrftoken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/restaurant/reservations/{{reservation_id}}/cancel/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "restaurant", "reservations", "{{reservation_id}}", "cancel", ""]
+            },
+            "description": "Cancels a reservation from restaurant side. Example response: { \"message\": \"Reservation cancelled by restaurant.\" }."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

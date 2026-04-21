@@ -4,7 +4,9 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
 
+from reservations.serializers import AvailableTablesQuerySerializer
 from accounts.permissions import IsRestaurant
 from reservations.models import Reservation
 from .models import Restaurant, Table, MenuCategory, Dish
@@ -192,20 +194,12 @@ class AvailableTablesView(APIView):
         except Restaurant.DoesNotExist:
             return Response({'error': 'Restaurant not found.'}, status=404)
 
-        reservation_date = request.query_params.get('date')
-        reservation_time = request.query_params.get('time')
-        guests = request.query_params.get('guests')
+        query_serializer = AvailableTablesQuerySerializer(data=request.query_params)
+        query_serializer.is_valid(raise_exception=True)
 
-        if not reservation_date or not reservation_time or not guests:
-            return Response(
-                {'error': 'date, time and guests are required query parameters.'},
-                status=400
-            )
-
-        try:
-            guests = int(guests)
-        except ValueError:
-            return Response({'error': 'guests must be a number.'}, status=400)
+        reservation_date = query_serializer.validated_data['date']
+        reservation_time = query_serializer.validated_data['time']
+        guests = query_serializer.validated_data['guests']
 
         reserved_table_ids = Reservation.objects.filter(
             restaurant=restaurant,
@@ -220,3 +214,12 @@ class AvailableTablesView(APIView):
 
         serializer = TableSerializer(tables, many=True)
         return Response(serializer.data)
+    
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def cuisine_types(request):
+    cuisines = list(
+        Restaurant.objects.values_list('cuisine_type', flat=True).distinct()
+    )
+    return Response({'cuisine_types': cuisines})
