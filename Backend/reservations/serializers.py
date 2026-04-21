@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from .models import Reservation
 
@@ -24,6 +25,19 @@ class ReservationSerializer(serializers.ModelSerializer):
         guests_count = attrs['guests_count']
         reservation_date = attrs['reservation_date']
         reservation_time = attrs['reservation_time']
+
+        today = timezone.localdate()
+        now_time = timezone.localtime().time().replace(second=0, microsecond=0)
+
+        if reservation_date < today:
+            raise serializers.ValidationError(
+                "You cannot create a reservation for a past date."
+            )
+
+        if reservation_date == today and reservation_time <= now_time:
+            raise serializers.ValidationError(
+                "You cannot create a reservation for a past time."
+            )
 
         if table.restaurant != restaurant:
             raise serializers.ValidationError(
