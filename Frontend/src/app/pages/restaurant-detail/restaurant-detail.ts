@@ -36,6 +36,8 @@ export class RestaurantDetail implements OnInit {
   error = '';
   success = '';
 
+  minDate = new Date().toISOString().split('T')[0];
+
   bookingForm = this.fb.nonNullable.group({
     reservation_date: ['', [Validators.required]],
     reservation_time: ['', [Validators.required]],
