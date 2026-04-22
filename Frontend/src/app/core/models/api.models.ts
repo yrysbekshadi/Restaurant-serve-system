@@ -66,6 +66,8 @@ export interface Reservation {
   reservation_time: string;
   guests_count: number;
   status: 'pending' | 'confirmed' | 'cancelled';
+  cancelled_by?: 'client' | 'restaurant' | null;
+  cancellation_reason?: string;
   created_at: string;
 }
 

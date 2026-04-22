@@ -10,6 +10,11 @@ class Reservation(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
+    CANCELLED_BY_CHOICES = [
+        ('client', 'Client'),
+        ('restaurant', 'Restaurant'),
+    ]
+
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -29,6 +34,13 @@ class Reservation(models.Model):
     reservation_time = models.TimeField()
     guests_count = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    cancelled_by = models.CharField(
+        max_length=20,
+        choices=CANCELLED_BY_CHOICES,
+        null=True,
+        blank=True
+    )
+    cancellation_reason = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -73,7 +73,7 @@ export class RestaurantDetail implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.error = 'Не удалось загрузить ресторан.';
+        this.error = 'Failed to load restaurant.';
       },
     });
   }
@@ -102,7 +102,7 @@ export class RestaurantDetail implements OnInit {
 
   private validateBookingInputs(): string | null {
     if (!this.restaurant) {
-      return 'Ресторан не загружен.';
+      return 'The restaurant is not busy.';
     }
 
     const formValue = this.bookingForm.getRawValue();
@@ -111,22 +111,22 @@ export class RestaurantDetail implements OnInit {
     const guestsCount = Number(formValue.guests_count);
 
     if (!reservationDate || !reservationTime) {
-      return 'Выбери дату и время.';
+      return 'Select date and time.';
     }
 
     if (!Number.isFinite(guestsCount) || guestsCount < 1) {
-      return 'Количество гостей должно быть не меньше 1.';
+      return 'The number of guests must be at least 1.';
     }
 
     const today = this.getNowLocalDate();
     const selectedTimeMinutes = this.parseTimeToMinutes(reservationTime);
 
     if (reservationDate < today) {
-      return 'Нельзя бронировать на прошедшую дату.';
+      return 'It is not possible to book for a past date.';
     }
 
     if (reservationDate === today && selectedTimeMinutes <= this.getNowLocalMinutes()) {
-      return 'Нельзя бронировать на прошедшее время.';
+      return 'It is not possible to book for a past time.';
     }
 
     const openingMinutes = this.parseTimeToMinutes(this.restaurant.opening_time);
@@ -155,11 +155,11 @@ export class RestaurantDetail implements OnInit {
     }
 
     if (!withinWorkingHours) {
-      return `Ресторан работает только с ${this.formatTime(this.restaurant.opening_time)} до ${this.formatTime(this.restaurant.closing_time)}.`;
+      return `The restaurant is only open from ${this.formatTime(this.restaurant.opening_time)} till ${this.formatTime(this.restaurant.closing_time)}.`;
     }
 
     if (reservationEndMinutes > windowEndMinutes) {
-      return `Бронь на ${this.reservationDurationMinutes} минут выходит за время работы ресторана.`;
+      return `A ${this.reservationDurationMinutes} reservation is outside the restaurant's working hours`;
     }
 
     return null;
@@ -202,12 +202,12 @@ export class RestaurantDetail implements OnInit {
         this.checkingTables = false;
 
         if (tables.length === 0) {
-          this.infoMessage = 'Нет доступных столов на выбранное время.';
+          this.infoMessage = 'There are no tables available for the selected time.';
         }
       },
       error: (err) => {
         this.checkingTables = false;
-        this.error = err?.error?.error || 'Не удалось получить список свободных столов.';
+        this.error = err?.error?.error || 'Unable to retrieve list of available tables.';
       },
     });
   }
@@ -226,7 +226,7 @@ export class RestaurantDetail implements OnInit {
     }
 
     if (user.role !== 'client') {
-      this.error = 'Бронировать стол может только пользователь с ролью client.';
+      this.error = 'Only a user with the client role can book a table.';
       return;
     }
 
@@ -246,7 +246,7 @@ export class RestaurantDetail implements OnInit {
     }
 
     if (!this.selectedTableId) {
-      this.error = 'Сначала выбери стол.';
+      this.error = 'First, choose a table.';
       return;
     }
 
@@ -268,7 +268,7 @@ export class RestaurantDetail implements OnInit {
     this.reservationService.createReservation(payload).subscribe({
       next: () => {
         this.booking = false;
-        this.success = 'Бронь создана.';
+        this.success = 'The reservation has been created.';
         this.router.navigateByUrl('/my-reservations');
       },
       error: (err) => {
@@ -296,7 +296,7 @@ export class RestaurantDetail implements OnInit {
           return;
         }
 
-        this.error = 'Не удалось создать бронь.';
+        this.error = 'Failed to create reservation.';
       },
     });
   }

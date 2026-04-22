@@ -10,22 +10,17 @@ export class ReservationService {
   private http = inject(HttpClient);
 
   createReservation(payload: CreateReservationPayload) {
-    return this.http.post<Reservation>(`${API_BASE_URL}/reservations/`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<Reservation>(`${API_BASE_URL}/reservations/`, payload);
   }
 
   getMyReservations() {
-    return this.http.get<Reservation[]>(`${API_BASE_URL}/reservations/my/`, {
-      withCredentials: true,
-    });
+    return this.http.get<Reservation[]>(`${API_BASE_URL}/reservations/my/`);
   }
 
   cancelMyReservation(id: number) {
     return this.http.patch<{ message: string }>(
       `${API_BASE_URL}/reservations/my/${id}/cancel/`,
-      {},
-      { withCredentials: true }
+      {}
     );
   }
 }

@@ -36,6 +36,9 @@ class RestaurantReservationsView(generics.ListAPIView):
     def get_queryset(self):
         return Reservation.objects.filter(
             restaurant=self.request.user.restaurant_profile
+        ).exclude(
+            status='cancelled',
+            cancelled_by='client'
         ).order_by('-created_at')
 
 
@@ -46,6 +49,9 @@ class RestaurantReservationDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Reservation.objects.filter(
             restaurant=self.request.user.restaurant_profile
+        ).exclude(
+            status='cancelled',
+            cancelled_by='client'
         )
 
 
@@ -61,8 +67,14 @@ class ConfirmReservationView(APIView):
         except Reservation.DoesNotExist:
             return Response({'error': 'Reservation not found.'}, status=404)
 
+        if reservation.status != 'pending':
+            return Response({'error': 'Only pending reservations can be confirmed.'}, status=400)
+
         reservation.status = 'confirmed'
+        reservation.cancelled_by = None
+        reservation.cancellation_reason = ''
         reservation.save()
+
         return Response({'message': 'Reservation confirmed.'})
 
 
@@ -78,8 +90,19 @@ class CancelReservationByRestaurantView(APIView):
         except Reservation.DoesNotExist:
             return Response({'error': 'Reservation not found.'}, status=404)
 
+        if reservation.status != 'pending':
+            return Response({'error': 'Only pending reservations can be cancelled.'}, status=400)
+
+        reason = (request.data.get('cancellation_reason') or '').strip()
+
+        if not reason:
+            return Response({'error': 'Cancellation reason is required.'}, status=400)
+
         reservation.status = 'cancelled'
+        reservation.cancelled_by = 'restaurant'
+        reservation.cancellation_reason = reason
         reservation.save()
+
         return Response({'message': 'Reservation cancelled by restaurant.'})
 
 
@@ -92,6 +115,12 @@ class CancelReservationByClientView(APIView):
         except Reservation.DoesNotExist:
             return Response({'error': 'Reservation not found.'}, status=404)
 
+        if reservation.status == 'cancelled':
+            return Response({'error': 'Reservation is already cancelled.'}, status=400)
+
         reservation.status = 'cancelled'
+        reservation.cancelled_by = 'client'
+        reservation.cancellation_reason = ''
         reservation.save()
+
         return Response({'message': 'Reservation cancelled by client.'})

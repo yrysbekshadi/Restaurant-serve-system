@@ -31,7 +31,7 @@ export class MyReservations implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Не удалось загрузить брони.';
+        this.error = 'Failed to load reservations.';
         this.loading = false;
       },
     });
@@ -41,7 +41,7 @@ export class MyReservations implements OnInit {
     this.reservationService.cancelMyReservation(id).subscribe({
       next: () => this.load(),
       error: () => {
-        this.error = 'Не удалось отменить бронь.';
+        this.error = 'Failed to cancel reservation.';
       },
     });
   }

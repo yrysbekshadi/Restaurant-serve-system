@@ -63,6 +63,7 @@ export class RestaurantDashboard implements OnInit {
   loadProfile() {
     this.loadingProfile = true;
     this.error = '';
+    this.success = '';
 
     this.ownerService.getMyProfile().subscribe({
       next: (profile) => {
@@ -90,7 +91,7 @@ export class RestaurantDashboard implements OnInit {
           return;
         }
 
-        this.error = 'Не удалось загрузить профиль ресторана.';
+        this.error = 'Failed to load restaurant profile.';
       },
     });
   }
@@ -108,14 +109,17 @@ export class RestaurantDashboard implements OnInit {
       return;
     }
 
+    this.error = '';
+    this.success = '';
+
     this.ownerService.createRestaurantProfile(this.profileForm.getRawValue()).subscribe({
       next: () => {
-        this.success = 'Профиль ресторана создан.';
+        this.success = 'The restaurant profile has been created.';
         this.profileExists = true;
         this.loadProfile();
       },
       error: (err) => {
-        this.error = JSON.stringify(err?.error ?? { error: 'Не удалось создать профиль.' });
+        this.error = JSON.stringify(err?.error ?? { error: 'Failed to create profile.' });
       },
     });
   }
@@ -126,13 +130,16 @@ export class RestaurantDashboard implements OnInit {
       return;
     }
 
+    this.error = '';
+    this.success = '';
+
     this.ownerService.updateMyProfile(this.profileForm.getRawValue()).subscribe({
       next: (profile) => {
         this.restaurantProfile = profile;
-        this.success = 'Профиль обновлён.';
+        this.success = 'Profile updated.';
       },
       error: (err) => {
-        this.error = JSON.stringify(err?.error ?? { error: 'Не удалось обновить профиль.' });
+        this.error = JSON.stringify(err?.error ?? { error: 'Failed to update profile.' });
       },
     });
   }
@@ -150,6 +157,8 @@ export class RestaurantDashboard implements OnInit {
     }
 
     const raw = this.tableForm.getRawValue();
+    this.error = '';
+    this.success = '';
 
     this.ownerService.addTable({
       table_number: Number(raw.table_number),
@@ -162,18 +171,25 @@ export class RestaurantDashboard implements OnInit {
           capacity: 2,
           is_active: true,
         });
+        this.success = 'The table has been added.';
         this.loadTables();
       },
       error: (err) => {
-        this.error = JSON.stringify(err?.error ?? { error: 'Не удалось добавить стол.' });
+        this.error = JSON.stringify(err?.error ?? { error: 'Failed to add table.' });
       },
     });
   }
 
   deleteTable(id: number) {
+    this.error = '';
+    this.success = '';
+
     this.ownerService.deleteTable(id).subscribe({
-      next: () => this.loadTables(),
-      error: () => this.error = 'Не удалось удалить стол.',
+      next: () => {
+        this.success = 'The table has been removed.';
+        this.loadTables();
+      },
+      error: () => this.error = 'Failed to delete table.',
     });
   }
 
@@ -189,12 +205,16 @@ export class RestaurantDashboard implements OnInit {
       return;
     }
 
+    this.error = '';
+    this.success = '';
+
     this.ownerService.addCategory(this.categoryForm.getRawValue()).subscribe({
       next: () => {
         this.categoryForm.reset({ name: '' });
+        this.success = 'Category added.';
         this.loadCategories();
       },
-      error: () => this.error = 'Не удалось добавить категорию.',
+      error: () => this.error = 'Failed to add category.',
     });
   }
 
@@ -213,9 +233,12 @@ export class RestaurantDashboard implements OnInit {
     const raw = this.dishForm.getRawValue();
 
     if (!raw.category) {
-      this.error = 'Сначала выбери категорию.';
+      this.error = 'First, select a category.';
       return;
     }
+
+    this.error = '';
+    this.success = '';
 
     this.ownerService.addDish({
       category: Number(raw.category),
@@ -236,18 +259,25 @@ export class RestaurantDashboard implements OnInit {
           image: '',
           is_available: true,
         });
+        this.success = 'The dish has been added.';
         this.loadDishes();
       },
       error: (err) => {
-        this.error = JSON.stringify(err?.error ?? { error: 'Не удалось добавить блюдо.' });
+        this.error = JSON.stringify(err?.error ?? { error: 'Failed to add dish.' });
       },
     });
   }
 
   deleteDish(id: number) {
+    this.error = '';
+    this.success = '';
+
     this.ownerService.deleteDish(id).subscribe({
-      next: () => this.loadDishes(),
-      error: () => this.error = 'Не удалось удалить блюдо.',
+      next: () => {
+        this.success = 'The dish has been removed.';
+        this.loadDishes();
+      },
+      error: () => this.error = 'Failed to delete dish.',
     });
   }
 
@@ -258,16 +288,45 @@ export class RestaurantDashboard implements OnInit {
   }
 
   confirmReservation(id: number) {
+    this.error = '';
+    this.success = '';
+
     this.ownerService.confirmReservation(id).subscribe({
-      next: () => this.loadReservations(),
-      error: () => this.error = 'Не удалось подтвердить бронь.',
+      next: () => {
+        this.success = 'The reservation has been confirmed.';
+        this.loadReservations();
+      },
+      error: (err) => {
+        this.error = err?.error?.error || 'Failed to confirm your reservation.';
+      },
     });
   }
 
   cancelReservation(id: number) {
-    this.ownerService.cancelReservation(id).subscribe({
-      next: () => this.loadReservations(),
-      error: () => this.error = 'Не удалось отменить бронь.',
+    const reason = window.prompt('Write cancellation reason');
+
+    if (reason === null) {
+      return;
+    }
+
+    const trimmedReason = reason.trim();
+
+    if (!trimmedReason) {
+      this.error = 'You must indicate the reason for refusal.';
+      return;
+    }
+
+    this.error = '';
+    this.success = '';
+
+    this.ownerService.cancelReservation(id, trimmedReason).subscribe({
+      next: () => {
+        this.success = 'Reservation rejected.';
+        this.loadReservations();
+      },
+      error: (err) => {
+        this.error = err?.error?.error || 'Failed to cancel reservation.';
+      },
     });
   }
 }

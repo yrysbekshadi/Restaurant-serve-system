@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import CsrfView, RegisterView, LoginView, LogoutView, ProfileView, auth_status
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
+from .views import CsrfView, RegisterView, LoginView, LogoutView, ProfileView
 
 urlpatterns = [
     path('csrf/', CsrfView.as_view()),
@@ -7,5 +9,6 @@ urlpatterns = [
     path('login/', LoginView.as_view()),
     path('logout/', LogoutView.as_view()),
     path('profile/', ProfileView.as_view()),
-    path('auth/status/', auth_status),
+    path('token/refresh/', TokenRefreshView.as_view()),
+    path('token/verify/', TokenVerifyView.as_view()),
 ]

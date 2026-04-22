@@ -1,7 +1,7 @@
 <section class="grid">
   <div class="card">
     <h1>My reservations</h1>
-    <p class="muted">Здесь отображаются все брони текущего клиента.</p>
+    <p class="muted">All reservations of the current client are displayed here.</p>
   </div>
 
   <p class="muted" *ngIf="loading">Loading...</p>
@@ -15,6 +15,18 @@
         <p>Time: {{ reservation.reservation_time }}</p>
         <p>Guests: {{ reservation.guests_count }}</p>
         <p>Table ID: {{ reservation.table }}</p>
+
+        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant'">
+          Cancelled by restaurant
+        </p>
+
+        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant' && reservation.cancellation_reason">
+          Reason: {{ reservation.cancellation_reason }}
+        </p>
+
+        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'client'">
+          Cancelled by you
+        </p>
       </div>
 
       <div>

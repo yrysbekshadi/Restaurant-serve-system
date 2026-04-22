@@ -36,6 +36,7 @@ export class Login {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (user) => {
         this.loading = false;
+
         if (user.role === 'restaurant') {
           this.router.navigateByUrl('/restaurant-dashboard');
         } else {
