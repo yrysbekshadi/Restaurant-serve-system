@@ -1,27 +1,80 @@
 <section class="grid">
   <div class="card">
-    <h2>Restaurants</h2>
-
-    <form [formGroup]="form" (ngSubmit)="loadRestaurants()" class="row">
-      <input type="text" formControlName="search" placeholder="Search by restaurant name..." />
-      <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+    <h1>Restaurants</h1>
+    <p class="muted">Find restaurants and open their pages for booking.</p>
   </div>
 
-  <p class="error" *ngIf="error">{{ error }}</p>
-  <p class="muted" *ngIf="loading">Loading...</p>
+  <div class="card">
+    <h2>Filters</h2>
 
-  <div class="grid grid-3">
-    <article class="card" *ngFor="let restaurant of restaurants">
+    <div class="form-grid">
+      <div>
+        <label>Search</label>
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          name="searchText"
+          placeholder="Search by name or address"
+        />
+      </div>
+
+      <div>
+        <label>District</label>
+        <select [(ngModel)]="districtFilter" name="districtFilter">
+          <option value="">All districts</option>
+          <option *ngFor="let district of availableDistricts" [value]="district">
+            {{ district }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cuisine</label>
+        <select [(ngModel)]="cuisineFilter" name="cuisineFilter">
+          <option value="">All cuisines</option>
+          <option *ngFor="let cuisine of availableCuisines" [value]="cuisine">
+            {{ cuisine }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; margin-bottom: 8px;">Only open now</label>
+        <input
+          type="checkbox"
+          [(ngModel)]="onlyOpenNow"
+          name="onlyOpenNow"
+        />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <button class="btn btn-primary" type="button" (click)="applyFilters()">
+        Apply filters
+      </button>
+      <button class="btn btn-outline" type="button" (click)="resetFilters()">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <p class="muted" *ngIf="loading">Loading...</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="grid grid-3" *ngIf="!loading && filteredRestaurants.length > 0">
+    <article class="card" *ngFor="let restaurant of filteredRestaurants">
       <h3>{{ restaurant.name }}</h3>
       <p class="muted">{{ restaurant.address }}</p>
       <p>District: {{ restaurant.district }}</p>
       <p>Cuisine: {{ restaurant.cuisine_type }}</p>
-      <p>Working hours: {{ restaurant.opening_time }} - {{ restaurant.closing_time }}</p>
-
-      <a class="btn btn-outline" [routerLink]="['/restaurants', restaurant.id]">
+      <p>Working hours: {{ restaurant.opening_time.slice(0, 5) }} - {{ restaurant.closing_time.slice(0, 5) }}</p>
+      <a class="btn btn-primary" [routerLink]="['/restaurants', restaurant.id]">
         Open restaurant
       </a>
     </article>
+  </div>
+
+  <div class="card" *ngIf="!loading && filteredRestaurants.length === 0 && !error">
+    <p>No restaurants found.</p>
   </div>
 </section>

@@ -1,7 +1,7 @@
 <section class="grid">
   <div class="card">
     <h1>Restaurant dashboard</h1>
-    <p class="muted">Кабинет ресторана: профиль, столы, меню и входящие брони.</p>
+    <p class="muted">Restaurant account: profile, tables, menu and incoming reservations.</p>
   </div>
 
   <p class="muted" *ngIf="loadingProfile">Loading profile...</p>
@@ -189,12 +189,16 @@
               <p>Time: {{ reservation.reservation_time }}</p>
               <p>Guests: {{ reservation.guests_count }}</p>
               <p>Table ID: {{ reservation.table }}</p>
+
+              <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant' && reservation.cancellation_reason">
+                Reason: {{ reservation.cancellation_reason }}
+              </p>
             </div>
 
             <span class="status" [ngClass]="reservation.status">{{ reservation.status }}</span>
           </div>
 
-          <div class="row" style="margin-top: 12px;">
+          <div class="row" style="margin-top: 12px;" *ngIf="reservation.status === 'pending'">
             <button class="btn btn-success" type="button" (click)="confirmReservation(reservation.id)">
               Confirm
             </button>

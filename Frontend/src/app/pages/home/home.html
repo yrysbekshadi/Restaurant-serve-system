@@ -1,11 +1,11 @@
 <section class="card">
   <h1>Restaurant Booking Platform</h1>
   <p class="muted">
-    Поиск ресторанов, бронь столов и кабинет ресторана в одном приложении.
+    Restaurant search, table reservations, and restaurant account management in one app.
   </p>
 
   <div class="row">
-    <a class="btn btn-primary" routerLink="/restaurants">Смотреть рестораны</a>
+    <a class="btn btn-primary" routerLink="/restaurants">Search Restaurant</a>
 
     <ng-container *ngIf="auth.currentUser$ | async as user; else guestButtons">
       <a
@@ -13,7 +13,7 @@
         class="btn btn-outline"
         routerLink="/my-reservations"
       >
-        Мои брони
+        My reservations
       </a>
 
       <a
@@ -26,7 +26,7 @@
     </ng-container>
 
     <ng-template #guestButtons>
-      <a class="btn btn-outline" routerLink="/register">Создать аккаунт</a>
+      <a class="btn btn-outline" routerLink="/register">Create account</a>
     </ng-template>
   </div>
 </section>

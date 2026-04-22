@@ -1,22 +1,19 @@
-from django.contrib.auth import authenticate, login, logout
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import User
-from .serializers import UserRegisterSerializer, UserSerializer, LoginSerializer
+from .serializers import LoginSerializer, UserRegisterSerializer, UserSerializer
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
 class CsrfView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({'message': 'CSRF cookie set'})
+        return Response({'message': 'JWT auth does not require CSRF cookie.'})
 
 
 class RegisterView(APIView):
@@ -37,27 +34,51 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
+        email = serializer.validated_data['email'].strip().lower()
         password = serializer.validated_data['password']
 
         try:
             user_obj = User.objects.get(email=email)
-            user = authenticate(username=user_obj.username, password=password)
+            user = authenticate(request=request, username=user_obj.username, password=password)
         except User.DoesNotExist:
             user = None
 
-        if user is not None:
-            login(request, user)
-            return Response({'message': 'Login successful'})
+        if user is None:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        refresh = RefreshToken.for_user(user)
+        refresh['email'] = user.email
+        refresh['username'] = user.username
+        refresh['role'] = user.role
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data,
+        })
 
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        logout(request)
+        refresh_token = request.data.get('refresh')
+
+        if not refresh_token:
+            return Response(
+                {'error': 'Refresh token is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            return Response(
+                {'error': 'Invalid or expired refresh token.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         return Response({'message': 'Logout successful'})
 
 
@@ -67,18 +88,3 @@ class ProfileView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
-    
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def auth_status(request):
-    if request.user.is_authenticated:
-        return Response({
-            'authenticated': True,
-            'user': UserSerializer(request.user).data
-        })
-
-    return Response({
-        'authenticated': False,
-        'user': None
-    })
