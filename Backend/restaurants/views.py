@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -18,6 +18,7 @@ from .serializers import (
     DishSerializer,
 )
 
+RESERVATION_DURATION_MINUTES = 60
 
 class RestaurantListView(generics.ListAPIView):
     queryset = Restaurant.objects.all()
@@ -201,20 +202,40 @@ class AvailableTablesView(APIView):
         reservation_time = query_serializer.validated_data['time']
         guests = query_serializer.validated_data['guests']
 
-        reserved_table_ids = Reservation.objects.filter(
-            restaurant=restaurant,
-            reservation_date=reservation_date,
-            reservation_time=reservation_time,
-        ).exclude(status='cancelled').values_list('table_id', flat=True)
+        requested_start = datetime.combine(reservation_date, reservation_time)
+        requested_end = requested_start + timedelta(minutes=RESERVATION_DURATION_MINUTES)
 
         tables = restaurant.tables.filter(
             is_active=True,
             capacity__gte=guests
-        ).exclude(id__in=reserved_table_ids)
+        )
 
-        serializer = TableSerializer(tables, many=True)
-        return Response(serializer.data)
-    
+        available_tables = []
+
+        for table in tables:
+            existing_reservations = Reservation.objects.filter(
+                table=table,
+                reservation_date=reservation_date,
+            ).exclude(status='cancelled')
+
+            is_conflicting = False
+
+            for reservation in existing_reservations:
+                existing_start = datetime.combine(
+                    reservation.reservation_date,
+                    reservation.reservation_time
+                )
+                existing_end = existing_start + timedelta(minutes=RESERVATION_DURATION_MINUTES)
+
+                if requested_start < existing_end and requested_end > existing_start:
+                    is_conflicting = True
+                    break
+
+            if not is_conflicting:
+                available_tables.append(table)
+
+        serializer = TableSerializer(available_tables, many=True)
+        return Response(serializer.data)    
     
 @api_view(['GET'])
 @permission_classes([AllowAny])
