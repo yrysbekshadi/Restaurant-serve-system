@@ -1,11 +1,17 @@
+from datetime import datetime, timedelta
+
 from django.utils import timezone
 from rest_framework import serializers
 from .models import Reservation
+
+RESERVATION_DURATION_MINUTES = 120
+
 
 class AvailableTablesQuerySerializer(serializers.Serializer):
     date = serializers.DateField()
     time = serializers.TimeField()
     guests = serializers.IntegerField(min_value=1)
+
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,16 +59,25 @@ class ReservationSerializer(serializers.ModelSerializer):
                 "This table does not have enough capacity."
             )
 
-        existing = Reservation.objects.filter(
+        new_start = datetime.combine(reservation_date, reservation_time)
+        new_end = new_start + timedelta(minutes=RESERVATION_DURATION_MINUTES)
+
+        existing_reservations = Reservation.objects.filter(
             table=table,
             reservation_date=reservation_date,
-            reservation_time=reservation_time,
         ).exclude(status='cancelled')
 
-        if existing.exists():
-            raise serializers.ValidationError(
-                "This table is already reserved at this date and time."
+        for reservation in existing_reservations:
+            existing_start = datetime.combine(
+                reservation.reservation_date,
+                reservation.reservation_time
             )
+            existing_end = existing_start + timedelta(minutes=RESERVATION_DURATION_MINUTES)
+
+            if new_start < existing_end and new_end > existing_start:
+                raise serializers.ValidationError(
+                    "This table is already reserved for that time range."
+                )
 
         return attrs
 
