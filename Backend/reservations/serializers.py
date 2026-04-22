@@ -4,7 +4,33 @@ from django.utils import timezone
 from rest_framework import serializers
 from .models import Reservation
 
-RESERVATION_DURATION_MINUTES = 120
+RESERVATION_DURATION_MINUTES = 90
+
+
+def get_reservation_window(restaurant, reservation_date, reservation_time):
+    opening_time = restaurant.opening_time
+    closing_time = restaurant.closing_time
+
+    reservation_start = datetime.combine(reservation_date, reservation_time)
+
+    if opening_time < closing_time:
+        window_start = datetime.combine(reservation_date, opening_time)
+        window_end = datetime.combine(reservation_date, closing_time)
+
+        is_within_working_hours = window_start <= reservation_start < window_end
+        return reservation_start, window_start, window_end, is_within_working_hours
+
+    if reservation_time >= opening_time:
+        window_start = datetime.combine(reservation_date, opening_time)
+        window_end = datetime.combine(reservation_date + timedelta(days=1), closing_time)
+        return reservation_start, window_start, window_end, True
+
+    if reservation_time < closing_time:
+        window_start = datetime.combine(reservation_date - timedelta(days=1), opening_time)
+        window_end = datetime.combine(reservation_date, closing_time)
+        return reservation_start, window_start, window_end, True
+
+    return reservation_start, None, None, False
 
 
 class AvailableTablesQuerySerializer(serializers.Serializer):
@@ -59,16 +85,35 @@ class ReservationSerializer(serializers.ModelSerializer):
                 "This table does not have enough capacity."
             )
 
-        new_start = datetime.combine(reservation_date, reservation_time)
+        new_start, window_start, window_end, is_within_working_hours = get_reservation_window(
+            restaurant,
+            reservation_date,
+            reservation_time
+        )
+
+        if not is_within_working_hours:
+            raise serializers.ValidationError(
+                "You cannot create a reservation outside the restaurant working hours."
+            )
+
         new_end = new_start + timedelta(minutes=RESERVATION_DURATION_MINUTES)
+
+        if new_end > window_end:
+            raise serializers.ValidationError(
+                "This reservation ends after the restaurant closes."
+            )
 
         existing_reservations = Reservation.objects.filter(
             table=table,
-            reservation_date=reservation_date,
+            reservation_date__range=(
+                reservation_date - timedelta(days=1),
+                reservation_date + timedelta(days=1),
+            )
         ).exclude(status='cancelled')
 
         for reservation in existing_reservations:
-            existing_start = datetime.combine(
+            existing_start, _, _, _ = get_reservation_window(
+                reservation.restaurant,
                 reservation.reservation_date,
                 reservation.reservation_time
             )
