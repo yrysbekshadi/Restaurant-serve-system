@@ -8,41 +8,42 @@
   <p class="error" *ngIf="error">{{ error }}</p>
 
   <article class="card" *ngFor="let reservation of reservations; let i = index">
-    <div class="row" style="justify-content: space-between;">
-      <div>
-        <h3>Reservation {{ reservations.length - i }}</h3>
-        <p>Date: {{ reservation.reservation_date }}</p>
-        <p>Time: {{ reservation.reservation_time }}</p>
-        <p>Guests: {{ reservation.guests_count }}</p>
-        <p>Table ID: {{ reservation.table }}</p>
+  <div class="row" style="justify-content: space-between;">
+    <div>
+      <h3>Reservation {{ reservations.length - i }}</h3>
+      <p>Restaurant: {{ reservation.restaurant_name || ('#' + reservation.restaurant) }}</p>
+      <p>Date: {{ reservation.reservation_date }}</p>
+      <p>Time: {{ reservation.reservation_time }}</p>
+      <p>Guests: {{ reservation.guests_count }}</p>
+      <p>Table: {{ reservation.table_number || reservation.table }}</p>
 
-        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant'">
-          Cancelled by restaurant
-        </p>
+      <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant'">
+        Cancelled by restaurant
+      </p>
 
-        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant' && reservation.cancellation_reason">
-          Reason: {{ reservation.cancellation_reason }}
-        </p>
+      <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'restaurant' && reservation.cancellation_reason">
+        Reason: {{ reservation.cancellation_reason }}
+      </p>
 
-        <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'client'">
-          Cancelled by you
-        </p>
-      </div>
-
-      <div>
-        <span class="status" [ngClass]="reservation.status">{{ reservation.status }}</span>
-      </div>
+      <p *ngIf="reservation.status === 'cancelled' && reservation.cancelled_by === 'client'">
+        Cancelled by you
+      </p>
     </div>
 
-    <div class="row" style="margin-top: 12px;">
-      <button
-        *ngIf="reservation.status !== 'cancelled'"
-        class="btn btn-danger"
-        type="button"
-        (click)="cancelReservation(reservation.id)"
-      >
-        Cancel reservation
-      </button>
+    <div>
+      <span class="status" [ngClass]="reservation.status">{{ reservation.status }}</span>
     </div>
-  </article>
+  </div>
+
+  <div class="row" style="margin-top: 12px;">
+    <button
+      *ngIf="reservation.status !== 'cancelled'"
+      class="btn btn-danger"
+      type="button"
+      (click)="cancelReservation(reservation.id)"
+    >
+      Cancel reservation
+    </button>
+  </div>
+</article>
 </section>

@@ -40,13 +40,18 @@ class AvailableTablesQuerySerializer(serializers.Serializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
+    restaurant_name = serializers.CharField(source='restaurant.name', read_only=True)
+    table_number = serializers.IntegerField(source='table.table_number', read_only=True)
+
     class Meta:
         model = Reservation
         fields = [
             'id',
             'client',
             'restaurant',
+            'restaurant_name',
             'table',
+            'table_number',
             'reservation_date',
             'reservation_time',
             'guests_count',
@@ -61,6 +66,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             'cancelled_by',
             'cancellation_reason',
             'created_at',
+            'restaurant_name',
+            'table_number',
         ]
 
     def validate(self, attrs):

@@ -39,20 +39,23 @@
       </div>
 
       <div>
-        <label style="display: block; margin-bottom: 8px;">Only open now</label>
-        <input
-          type="checkbox"
-          [(ngModel)]="onlyOpenNow"
-          name="onlyOpenNow"
-        />
-      </div>
+  <label class="checkbox-inline">
+    <span>Only open now</span>
+    <input
+      type="checkbox"
+      [(ngModel)]="onlyOpenNow"
+      name="onlyOpenNow"
+    />
+  </label>
+</div>
     </div>
 
-    <div class="row" style="margin-top: 16px;">
-      <button class="btn btn-primary" type="button" (click)="applyFilters()">
+    <div class="filter-actions">
+      <button class="btn btn-primary filter-btn" type="button" (click)="applyFilters()">
         Apply filters
       </button>
-      <button class="btn btn-outline" type="button" (click)="resetFilters()">
+
+      <button class="btn btn-outline filter-btn" type="button" (click)="resetFilters()">
         Reset
       </button>
     </div>
@@ -67,7 +70,10 @@
       <p class="muted">{{ restaurant.address }}</p>
       <p>District: {{ restaurant.district }}</p>
       <p>Cuisine: {{ restaurant.cuisine_type }}</p>
-      <p>Working hours: {{ restaurant.opening_time.slice(0, 5) }} - {{ restaurant.closing_time.slice(0, 5) }}</p>
+      <p>
+        Working hours:
+        {{ restaurant.opening_time.slice(0, 5) }} - {{ restaurant.closing_time.slice(0, 5) }}
+      </p>
       <a class="btn btn-primary" [routerLink]="['/restaurants', restaurant.id]">
         Open restaurant
       </a>

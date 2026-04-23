@@ -61,7 +61,9 @@ export interface Reservation {
   id: number;
   client: number;
   restaurant: number;
+  restaurant_name?: string;
   table: number;
+  table_number?: number;
   reservation_date: string;
   reservation_time: string;
   guests_count: number;
