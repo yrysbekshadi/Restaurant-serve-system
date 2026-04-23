@@ -1,7 +1,6 @@
 <div *ngIf="loading" class="muted">Loading...</div>
 <p class="error" *ngIf="error">{{ error }}</p>
 <p class="success" *ngIf="success">{{ success }}</p>
-<p class="muted" *ngIf="infoMessage">{{ infoMessage }}</p>
 
 <section *ngIf="restaurant" class="grid">
   <div class="card">
@@ -9,21 +8,18 @@
     <p class="muted">{{ restaurant.address }}</p>
     <p>District: {{ restaurant.district }}</p>
     <p>Cuisine: {{ restaurant.cuisine_type }}</p>
-    <p>Working hours: {{ workingHoursLabel }}</p>
-    <p>Reservation duration: {{ reservationDurationMinutes }} minutes</p>
+    <p>Working hours: {{ restaurant.opening_time }} - {{ restaurant.closing_time }}</p>
     <p>{{ restaurant.description }}</p>
   </div>
 
   <div class="card">
     <h2>Check available tables</h2>
-    <p class="muted">
-      Choose date, time and number of guests. Booking must fit into restaurant working hours.
-    </p>
+    
 
     <form [formGroup]="bookingForm" class="form-grid">
       <div>
         <label>Date</label>
-        <input type="date" formControlName="reservation_date" [min]="minDate" />
+        <input type="date" formControlName="reservation_date" [min] = "minDate"/>
       </div>
 
       <div>
@@ -42,10 +38,6 @@
         {{ checkingTables ? 'Checking...' : 'Check tables' }}
       </button>
     </div>
-
-    <p class="muted" *ngIf="hasCheckedTables && !checkingTables && availableTables.length === 0 && !error">
-      No tables available for the selected time.
-    </p>
   </div>
 
   <div class="card" *ngIf="availableTables.length > 0">
@@ -66,27 +58,30 @@
     </div>
 
     <div class="row" style="margin-top: 16px;">
-      <button
-        class="btn btn-primary"
-        type="button"
-        (click)="submitReservation()"
-        [disabled]="booking || !selectedTableId"
-      >
+      <button class="btn btn-primary" type="button" (click)="submitReservation()" [disabled]="booking">
         {{ booking ? 'Saving...' : 'Create reservation' }}
       </button>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Menu</h2>
+<div class="card">
+  <h2>Menu</h2>
 
-    <div class="list">
-      <article class="card" *ngFor="let dish of restaurant.dishes">
+  <div class="list">
+    <article class="card dish-card" *ngFor="let dish of restaurant.dishes">
+      <img
+        *ngIf="getDishImage(dish)"
+        [src]="getDishImage(dish)"
+        [alt]="dish.name"
+        class="dish-image"
+        (error)="onDishImageError($event)"
+      />
+
         <h3>{{ dish.name }}</h3>
         <p *ngIf="dish.description">{{ dish.description }}</p>
         <p class="muted" *ngIf="dish.ingredients">Ingredients: {{ dish.ingredients }}</p>
         <p><strong>{{ dish.price }}</strong></p>
-      </article>
+     </article>
     </div>
   </div>
 </section>

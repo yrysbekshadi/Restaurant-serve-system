@@ -5,3 +5,4 @@ __pycache__/
 .vscode/
 .idea/
 Как_работать.txt
+db.sqlite3;
