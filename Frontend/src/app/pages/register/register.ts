@@ -103,7 +103,7 @@ export class Register {
     this.auth.register(this.form.getRawValue()).subscribe({
       next: () => {
         this.loading = false;
-        this.success = 'Аккаунт создан. Теперь войди в систему.';
+        this.success = 'Your account has been created. Now log in.';
         this.router.navigateByUrl('/login');
       },
       error: (err) => {

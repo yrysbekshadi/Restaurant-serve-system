@@ -35,8 +35,11 @@ export class RestaurantDetail implements OnInit {
   booking = false;
   error = '';
   success = '';
+  infoMessage = '';
+  hasCheckedTables = false;
 
   minDate = new Date().toISOString().split('T')[0];
+  readonly reservationDurationMinutes = 90;
 
   bookingForm = this.fb.nonNullable.group({
     reservation_date: ['', [Validators.required]],
@@ -53,6 +56,14 @@ export class RestaurantDetail implements OnInit {
     return Number(this.route.snapshot.paramMap.get('id'));
   }
 
+  get workingHoursLabel(): string {
+    if (!this.restaurant) {
+      return '';
+    }
+
+    return `${this.formatTime(this.restaurant.opening_time)} - ${this.formatTime(this.restaurant.closing_time)}`;
+  }
+
   loadRestaurant(id: number) {
     this.loading = true;
     this.restaurantService.getRestaurant(id).subscribe({
@@ -62,9 +73,96 @@ export class RestaurantDetail implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.error = 'Не удалось загрузить ресторан.';
+        this.error = 'Failed to load restaurant.';
       },
     });
+  }
+
+  private formatTime(value: string): string {
+    return value.slice(0, 5);
+  }
+
+  private parseTimeToMinutes(value: string): number {
+    const [hours, minutes] = value.slice(0, 5).split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private getNowLocalDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = `${now.getMonth() + 1}`.padStart(2, '0');
+    const day = `${now.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private getNowLocalMinutes(): number {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  }
+
+  private validateBookingInputs(): string | null {
+    if (!this.restaurant) {
+      return 'The restaurant is not busy.';
+    }
+
+    const formValue = this.bookingForm.getRawValue();
+    const reservationDate = formValue.reservation_date;
+    const reservationTime = formValue.reservation_time;
+    const guestsCount = Number(formValue.guests_count);
+
+    if (!reservationDate || !reservationTime) {
+      return 'Select date and time.';
+    }
+
+    if (!Number.isFinite(guestsCount) || guestsCount < 1) {
+      return 'The number of guests must be at least 1.';
+    }
+
+    const today = this.getNowLocalDate();
+    const selectedTimeMinutes = this.parseTimeToMinutes(reservationTime);
+
+    if (reservationDate < today) {
+      return 'It is not possible to book for a past date.';
+    }
+
+    if (reservationDate === today && selectedTimeMinutes <= this.getNowLocalMinutes()) {
+      return 'It is not possible to book for a past time.';
+    }
+
+    const openingMinutes = this.parseTimeToMinutes(this.restaurant.opening_time);
+    const closingMinutes = this.parseTimeToMinutes(this.restaurant.closing_time);
+
+    const isOvernight = openingMinutes >= closingMinutes;
+
+    let withinWorkingHours = false;
+    let reservationEndMinutes = 0;
+    let windowEndMinutes = 0;
+
+    if (!isOvernight) {
+      withinWorkingHours = selectedTimeMinutes >= openingMinutes && selectedTimeMinutes < closingMinutes;
+      reservationEndMinutes = selectedTimeMinutes + this.reservationDurationMinutes;
+      windowEndMinutes = closingMinutes;
+    } else {
+      if (selectedTimeMinutes >= openingMinutes) {
+        withinWorkingHours = true;
+        reservationEndMinutes = selectedTimeMinutes + this.reservationDurationMinutes;
+        windowEndMinutes = closingMinutes + 24 * 60;
+      } else if (selectedTimeMinutes < closingMinutes) {
+        withinWorkingHours = true;
+        reservationEndMinutes = selectedTimeMinutes + 24 * 60 + this.reservationDurationMinutes;
+        windowEndMinutes = closingMinutes + 24 * 60;
+      }
+    }
+
+    if (!withinWorkingHours) {
+      return `The restaurant is only open from ${this.formatTime(this.restaurant.opening_time)} till ${this.formatTime(this.restaurant.closing_time)}.`;
+    }
+
+    if (reservationEndMinutes > windowEndMinutes) {
+      return `A ${this.reservationDurationMinutes} reservation is outside the restaurant's working hours`;
+    }
+
+    return null;
   }
 
   checkTables() {
@@ -73,11 +171,25 @@ export class RestaurantDetail implements OnInit {
       return;
     }
 
+    const validationError = this.validateBookingInputs();
+    if (validationError) {
+      this.error = validationError;
+      this.success = '';
+      this.infoMessage = '';
+      this.availableTables = [];
+      this.selectedTableId = null;
+      this.hasCheckedTables = false;
+      return;
+    }
+
     const formValue = this.bookingForm.getRawValue();
     this.checkingTables = true;
     this.error = '';
     this.success = '';
+    this.infoMessage = '';
     this.selectedTableId = null;
+    this.availableTables = [];
+    this.hasCheckedTables = true;
 
     this.restaurantService.getAvailableTables(
       this.restaurantId,
@@ -88,16 +200,21 @@ export class RestaurantDetail implements OnInit {
       next: (tables) => {
         this.availableTables = tables;
         this.checkingTables = false;
+
+        if (tables.length === 0) {
+          this.infoMessage = 'There are no tables available for the selected time.';
+        }
       },
       error: (err) => {
         this.checkingTables = false;
-        this.error = err?.error?.error || 'Не удалось получить список свободных столов.';
+        this.error = err?.error?.error || 'Unable to retrieve list of available tables.';
       },
     });
   }
 
   selectTable(tableId: number) {
     this.selectedTableId = tableId;
+    this.error = '';
   }
 
   submitReservation() {
@@ -109,7 +226,7 @@ export class RestaurantDetail implements OnInit {
     }
 
     if (user.role !== 'client') {
-      this.error = 'Бронировать стол может только пользователь с ролью client.';
+      this.error = 'Only a user with the client role can book a table.';
       return;
     }
 
@@ -122,8 +239,14 @@ export class RestaurantDetail implements OnInit {
       return;
     }
 
+    const validationError = this.validateBookingInputs();
+    if (validationError) {
+      this.error = validationError;
+      return;
+    }
+
     if (!this.selectedTableId) {
-      this.error = 'Сначала выбери стол.';
+      this.error = 'First, choose a table.';
       return;
     }
 
@@ -140,27 +263,41 @@ export class RestaurantDetail implements OnInit {
     this.booking = true;
     this.error = '';
     this.success = '';
+    this.infoMessage = '';
 
     this.reservationService.createReservation(payload).subscribe({
       next: () => {
         this.booking = false;
-        this.success = 'Бронь создана.';
+        this.success = 'The reservation has been created.';
         this.router.navigateByUrl('/my-reservations');
       },
       error: (err) => {
         this.booking = false;
-        this.error = JSON.stringify(err?.error ?? { error: 'Не удалось создать бронь.' });
+
+        const backendError = err?.error;
+
+        if (typeof backendError === 'string') {
+          this.error = backendError;
+          return;
+        }
+
+        if (backendError?.non_field_errors?.length) {
+          this.error = backendError.non_field_errors[0];
+          return;
+        }
+
+        if (backendError?.detail) {
+          this.error = backendError.detail;
+          return;
+        }
+
+        if (backendError?.error) {
+          this.error = backendError.error;
+          return;
+        }
+
+        this.error = 'Failed to create reservation.';
       },
     });
-  }
-
-  getDishImage(dish: any): string | null {
-    const url = dish?.image_url?.trim();
-    return url ? url : null;
-  }
-
-  onDishImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.style.display = 'none';
   }
 }

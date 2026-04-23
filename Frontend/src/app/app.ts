@@ -19,8 +19,13 @@ export class App implements OnInit {
   }
 
   logout() {
-    this.auth.logout().subscribe(() => {
-      this.router.navigateByUrl('/');
+    this.auth.logout().subscribe({
+      next: () => {
+        this.router.navigateByUrl('/');
+      },
+      error: () => {
+        this.router.navigateByUrl('/');
+      },
     });
   }
 }

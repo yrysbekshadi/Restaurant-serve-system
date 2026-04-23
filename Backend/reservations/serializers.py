@@ -51,9 +51,17 @@ class ReservationSerializer(serializers.ModelSerializer):
             'reservation_time',
             'guests_count',
             'status',
+            'cancelled_by',
+            'cancellation_reason',
             'created_at',
         ]
-        read_only_fields = ['client', 'status', 'created_at']
+        read_only_fields = [
+            'client',
+            'status',
+            'cancelled_by',
+            'cancellation_reason',
+            'created_at',
+        ]
 
     def validate(self, attrs):
         table = attrs['table']
